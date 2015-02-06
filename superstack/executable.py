@@ -16,7 +16,7 @@
 #
 import getpass
 import argparse
-import supernova
+import superstack
 import sys
 
 
@@ -42,23 +42,23 @@ def print_valid_envs(valid_envs):
     print "%r" % valid_envs
 
 
-def check_supernova_conf(s):
-    """Checks to make sure supernova can read it's config file."""
-    if s.get_nova_creds() is None:
-        msg = ('[%s] Unable to find your supernova configuration file or your '
+def check_superstack_conf(s):
+    """Checks to make sure superstack can read it's config file."""
+    if s.get_stack_creds() is None:
+        msg = ('[%s] Unable to find your superstack configuration file or your '
                'configuration file is malformed.')
         print msg % rwrap('Configuration missing')
         sys.exit()
 
 
-def setup_supernova_env(s, env):
-    """Set supernova object's nova_env and ensure validity."""
-    s.nova_env = env
+def setup_superstack_env(s, env):
+    """Set superstack object's stack_env and ensure validity."""
+    s.stack_env = env
     if not s.is_valid_environment():
         msg = ('[%s] Unable to find the %r environment in your '
                'configuration file.')
         print msg % (rwrap('Invalid environment'), env)
-        print_valid_envs(sorted(s.get_nova_creds().sections()))
+        print_valid_envs(sorted(s.get_stack_creds().sections()))
         sys.exit()
 
 
@@ -67,56 +67,56 @@ def setup_supernova_env(s, env):
 class _ListAction(argparse._HelpAction):
     """ListAction used for the -l and --list arguments."""
     def __call__(self, parser, *args, **kwargs):
-        """Lists are configured supernova environments."""
-        s = supernova.SuperNova()
-        for nova_env in s.get_nova_creds().sections():
-            envheader = '-- %s ' % gwrap(nova_env)
+        """Lists are configured superstack environments."""
+        s = superstack.SuperStack()
+        for stack_env in s.get_stack_creds().sections():
+            envheader = '-- %s ' % gwrap(stack_env)
             print envheader.ljust(86, '-')
-            for param, value in sorted(s.get_nova_creds().items(nova_env)):
+            for param, value in sorted(s.get_stack_creds().items(stack_env)):
                 print '  %s: %s' % (param.upper().ljust(21), value)
         parser.exit()
 
 
-def run_supernova():
+def run_superstack():
     """
     Handles all of the prep work and error checking for the
-    supernova executable.
+    superstack executable.
     """
-    s = supernova.SuperNova()
-    check_supernova_conf(s)
+    s = superstack.SuperStack()
+    check_superstack_conf(s)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--list', action=_ListAction,
                         dest='listenvs',
                         help='list all configured environments')
     parser.add_argument('-d', '--debug', action='store_true',
-                        help='show novaclient debug output')
+                        help='show openstack client debug output')
     parser.add_argument('env',
-                        help=('environment to run nova against. '
+                        help=('environment to run openstack against. '
                               'valid options: %s' %
-                              sorted(s.get_nova_creds().sections())))
+                              sorted(s.get_stack_creds().sections())))
 
-    # Allow for passing --options all the way through to novaclient
-    supernova_args, nova_args = parser.parse_known_args()
+    # Allow for passing --options all the way through to openstack client
+    superstack_args, stack_args = parser.parse_known_args()
 
-    # Did we get any arguments to pass on to nova?
-    if not nova_args:
-        msg = '[%s] No arguments were provided to pass along to nova.'
-        print msg % rwrap('Missing novaclient arguments')
+    # Did we get any arguments to pass on to openstack?
+    if not stack_args:
+        msg = '[%s] No arguments were provided to pass along to openstack.'
+        print msg % rwrap('Missing openstack client arguments')
         sys.exit()
 
-    setup_supernova_env(s, supernova_args.env)
+    setup_superstack_env(s, superstack_args.env)
 
-    # All of the remaining arguments should be handed off to nova
-    s.run_novaclient(nova_args, supernova_args.debug)
+    # All of the remaining arguments should be handed off to openstack
+    s.run_openstackclient(stack_args, superstack_args.debug)
 
 
-def run_supernova_keyring():
+def run_superstack_keyring():
     """
     Handles all of the prep work and error checking for the
-    supernova-keyring executable.
+    superstack-keyring executable.
     """
-    s = supernova.SuperNova()
+    s = superstack.SuperStack()
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-g', '--get', action='store_true',
@@ -162,10 +162,10 @@ def run_supernova_keyring():
 
         if store_ok:
             print "\n[%s] Successfully stored credentials for %s under the " \
-                  "supernova service." % (gwrap("Success"), username)
+                  "superstack service." % (gwrap("Success"), username)
         else:
             print "\n[%s] Unable to store credentials for %s under the " \
-                  "supernova service." % (rwrap("Failed"), username)
+                  "superstack service." % (rwrap("Failed"), username)
 
         sys.exit()
 

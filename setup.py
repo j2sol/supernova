@@ -18,17 +18,17 @@ from setuptools import setup
 
 
 setup(
-    name='supernova',
-    version='0.7.5',
-    author='Major Hayden',
-    author_email='major@mhtx.net',
-    description="novaclient wrapper for multiple nova environments",
-    install_requires=['keyring'],
-    packages=['supernova'],
-    url='https://github.com/rackerhacker/supernova',
+    name='superstack',
+    version='1.0.0',
+    author='Jesse Keating',
+    author_email='jkeating@j2solutions.net',
+    description="openstack client wrapper for multiple openstack environments",
+    install_requires=['keyring', 'python-openstackclient'],
+    packages=['superstack'],
+    url='https://github.com/j2sol/superstack',
     entry_points={
         'console_scripts': [
-            'supernova = supernova.executable:run_supernova',
-            'supernova-keyring = supernova.executable:run_supernova_keyring'],
+            'superstack = superstack.executable:run_superstack',
+            'superstack-keyring = superstack.executable:run_superstack_keyring'],
         }
     )

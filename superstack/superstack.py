@@ -22,46 +22,46 @@ import subprocess
 import sys
 
 
-class SuperNova:
+class SuperStack:
 
     def __init__(self):
-        self.nova_creds = None
-        self.nova_env = None
+        self.stack_creds = None
+        self.stack_env = None
         self.env = os.environ.copy()
 
     def check_deprecated_options(self):
         """
-        Hunts for deprecated configuration options from previous SuperNova
+        Hunts for deprecated configuration options from previous SuperStack
         versions.
         """
-        creds = self.get_nova_creds()
-        if creds.has_option(self.nova_env, 'insecure'):
+        creds = self.get_stack_creds()
+        if creds.has_option(self.stack_env, 'insecure'):
             print "WARNING: the 'insecure' option is deprecated. " \
-                  "Consider using NOVACLIENT_INSECURE=1 instead."
+                  "Consider using OS_CLIENT_INSECURE=1 instead."
 
-    def get_nova_creds(self):
+    def get_stack_creds(self):
         """
-        Reads the supernova config file from the current directory or the
+        Reads the superstack config file from the current directory or the
         user's home directory.  If the config file has already been read, the
         cached copy is immediately returned.
         """
-        if self.nova_creds:
-            return self.nova_creds
+        if self.stack_creds:
+            return self.stack_creds
 
-        possible_configs = [os.path.expanduser("~/.supernova"), '.supernova']
-        self.nova_creds = ConfigParser.RawConfigParser()
-        self.nova_creds.read(possible_configs)
-        if len(self.nova_creds.sections()) < 1:
+        possible_configs = [os.path.expanduser("~/.superstack"), '.superstack']
+        self.stack_creds = ConfigParser.RawConfigParser()
+        self.stack_creds.read(possible_configs)
+        if len(self.stack_creds.sections()) < 1:
             return None
-        return self.nova_creds
+        return self.stack_creds
 
     def is_valid_environment(self):
         """
         Checks to see if the configuration file contains a section for our
         requested environment.
         """
-        valid_envs = self.get_nova_creds().sections()
-        return self.nova_env in valid_envs
+        valid_envs = self.get_stack_creds().sections()
+        return self.stack_env in valid_envs
 
     def password_get(self, username=None):
         """
@@ -69,7 +69,7 @@ class SuperNova:
         configuration parameter pair.
         """
         try:
-            return keyring.get_password('supernova', username)
+            return keyring.get_password('superstack', username)
         except:
             return False
 
@@ -79,25 +79,25 @@ class SuperNova:
         configuration parameter pair.
         """
         try:
-            keyring.set_password('supernova', username, password)
+            keyring.set_password('superstack', username, password)
             return True
         except:
             return False
 
-    def prep_nova_creds(self):
+    def prep_stack_creds(self):
         """
-        Finds relevant config options in the supernova config and cleans them
-        up for novaclient.
+        Finds relevant config options in the superstack config and cleans them
+        up for openstack client.
         """
         self.check_deprecated_options()
-        raw_creds = self.get_nova_creds().items(self.nova_env)
-        nova_re = re.compile(r"(^nova_|^os_|^novaclient)")
+        raw_creds = self.get_stack_creds().items(self.stack_env)
+        stack_re = re.compile(r"(^stack_|^os_|^openstack)")
 
         creds = []
         for param, value in raw_creds:
 
             # Skip parameters we're unfamiliar with
-            if not nova_re.match(param):
+            if not stack_re.match(param):
                 continue
 
             param = param.upper()
@@ -106,7 +106,7 @@ class SuperNova:
             if value.startswith("USE_KEYRING"):
                 rex = "USE_KEYRING\[([\x27\x22])(.*)\\1\]"
                 if value == "USE_KEYRING":
-                    username = "%s:%s" % (self.nova_env, param)
+                    username = "%s:%s" % (self.stack_env, param)
                 else:
                     global_identifier = re.match(rex, value).group(2)
                     username = "%s:%s" % ('global', global_identifier)
@@ -129,27 +129,27 @@ class SuperNova:
         """
         Appends new variables to the current shell environment temporarily.
         """
-        for k, v in self.prep_nova_creds():
+        for k, v in self.prep_stack_creds():
             self.env[k] = v
 
-    def run_novaclient(self, nova_args, force_debug=False):
+    def run_openstackclient(self, stack_args, force_debug=False):
         """
-        Sets the environment variables for novaclient, runs novaclient, and
-        prints the output.
+        Sets the environment variables for openstack client, runs
+        openstack client, and prints the output.
         """
         # Get the environment variables ready
         self.prep_shell_environment()
 
         # Check for a debug override
         if force_debug:
-            nova_args.insert(0, '--debug')
+            stack_args.insert(0, '--debug')
 
-        # Call novaclient and connect stdout/stderr to the current terminal
-        # so that any unicode characters from novaclient's list will be
-        # displayed appropriately.
+        # Call openstack client and connect stdout/stderr to the current
+        # terminal so that any unicode characters from openstack client's list
+        # will be displayed appropriately.
         #
         # In other news, I hate how python 2.6 does unicode.
-        p = subprocess.Popen(['nova'] + nova_args,
+        p = subprocess.Popen(['openstack'] + stack_args,
             stdout=sys.stdout,
             stderr=sys.stderr,
             env=self.env

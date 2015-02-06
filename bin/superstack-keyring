@@ -17,7 +17,7 @@
 #   ----
 #
 #   This file only exists to help with local testing prior to installation.
-#   The actual supernova executable in your bin directory will be created by
+#   The actual superstack executable in your bin directory will be created by
 #   setuptools (see entry_points in setup.py).
 #
 import os
@@ -27,8 +27,8 @@ import sys
 possible_topdir = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
                                    os.pardir,
                                    os.pardir))
-if os.path.exists(os.path.join(possible_topdir, 'supernova', '__init__.py')):
+if os.path.exists(os.path.join(possible_topdir, 'superstack', '__init__.py')):
     sys.path.insert(0, possible_topdir)
 
-from supernova import executable
-executable.run_supernova_keyring()
+from superstack import executable
+executable.run_superstack_keyring()
